@@ -33,6 +33,7 @@ CFLAGS += -DUSE_KECCAK=1
 CFLAGS += -DUSE_MONERO=1
 CFLAGS += -DUSE_NEM=1
 CFLAGS += -DUSE_CARDANO=1
+CFLAGS += -DUSE_HYCON=1
 CFLAGS += $(shell pkg-config --cflags openssl)
 
 # disable certain optimizations and features when small footprint is required
@@ -79,7 +80,7 @@ tests: tests/test_check tests/test_openssl tests/test_speed tests/libtrezor-cryp
 tests/aestst: aes/aestst.o aes/aescrypt.o aes/aeskey.o aes/aestab.o
 	$(CC) $^ -o $@
 
-tests/test_check.o: tests/test_check_cardano.h tests/test_check_monero.h tests/test_check_cashaddr.h tests/test_check_segwit.h
+tests/test_check.o: tests/test_check_cardano.h tests/test_check_monero.h tests/test_check_cashaddr.h tests/test_check_segwit.h tests/test_check_hycon.h
 
 tests/test_check: tests/test_check.o $(OBJS)
 	$(CC) tests/test_check.o $(OBJS) $(TESTLIBS) -o tests/test_check

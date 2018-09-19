@@ -4812,6 +4812,10 @@ END_TEST
 #include "test_check_monero.h"
 #endif
 
+#if USE_HYCON
+#include "test_check_hycon.h"
+#endif
+
 // define test suite and cases
 Suite *test_suite(void)
 {
@@ -5114,6 +5118,13 @@ Suite *test_suite(void)
 	tcase_add_test(tc, test_xmr_gen_c);
 	tcase_add_test(tc, test_xmr_varint);
 	tcase_add_test(tc, test_xmr_gen_range_sig);
+	suite_add_tcase(s, tc);
+#endif
+
+#if USE_HYCON
+	tc = tcase_create("bip32-hycon");
+	tcase_add_test(tc, test_bip32_hycon_hdnode);
+	tcase_add_test(tc, test_hycon_sign);
 	suite_add_tcase(s, tc);
 #endif
 	return s;
