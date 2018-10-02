@@ -4813,6 +4813,8 @@ END_TEST
 #endif
 
 #if USE_HYCON
+#include "protob/hyconTx.pb-c.h"
+#include <openssl/aes.h>
 #include "test_check_hycon.h"
 #endif
 
@@ -5127,6 +5129,7 @@ Suite *test_suite(void)
 	tcase_add_test(tc, test_hycon_sign);
 	suite_add_tcase(s, tc);
 #endif
+
 	return s;
 }
 

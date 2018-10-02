@@ -61,7 +61,7 @@ void   hycon_tx__init
 size_t hycon_tx__get_packed_size
                      (const HyconTx *message)
 {
-  // assert(message->base.descriptor == &hycon_tx__descriptor);
+  assert(message->base.descriptor == &hycon_tx__descriptor);
   return protobuf_c_message_get_packed_size ((const ProtobufCMessage*)(message));
 }
 size_t hycon_tx__pack

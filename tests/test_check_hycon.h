@@ -67,13 +67,12 @@ START_TEST(test_bip32_hycon_hdnode)
 }
 END_TEST
 
-#include "protob/hyconTx.pb-c.h"
-
 START_TEST(test_hycon_sign)
 {
     size_t address_array_length = 20;
 
     uint8_t from_address_array[address_array_length];
+    memset(from_address_array, 0, address_array_length);
     b58tobin(from_address_array, &address_array_length, "wTsQGpbicAZsXcmSHN8XmcNR9wX");
     ck_assert_mem_eq(from_address_array, fromhex("4366e2a531a891233fd59cfa5f062a0f1018af6a"), address_array_length);
     ProtobufCBinaryData from_address;
@@ -82,6 +81,7 @@ START_TEST(test_hycon_sign)
 
 
     uint8_t to_address_array[address_array_length];
+    memset(to_address_array, 0, address_array_length);
     b58tobin(to_address_array, &address_array_length, "3GKJpnAXne7iGBLjmHQLFQxpJU8A");
     ck_assert_mem_eq(to_address_array, fromhex("a28306b5066c6f94d903bc2aae4f7b025ca19823"), address_array_length);
     ProtobufCBinaryData to_address;
@@ -91,14 +91,78 @@ START_TEST(test_hycon_sign)
     HyconTx tx = HYCON_TX__INIT;
     tx.to =  to_address;
     tx.from = from_address;
-    tx.nonce = 2;
-    tx.amount = 0;
-    tx.fee = 0;
+    tx.nonce = 7;
+    tx.amount = 100000000;
+    tx.fee = 1;
+    
+    uint8_t* protoTx;
+    size_t protoTx_length = hycon_tx__get_packed_size(&tx);
+    protoTx = malloc(protoTx_length);
+    hycon_tx__pack(&tx, protoTx); 
+    ck_assert_mem_eq(protoTx, fromhex("0a144366e2a531a891233fd59cfa5f062a0f1018af6a1214a28306b5066c6f94d903bc2aae4f7b025ca198231880c2d72f20012807"), protoTx_length); 
 
-    uint8_t* buf;
-    buf = malloc(hycon_tx__get_packed_size(&tx));
-    // hycon_tx__pack(&tx, buf);
+    size_t hash_length = 32;
+    uint8_t txhash[hash_length];
+    memset(txhash, 0, hash_length);
+    blake2b(protoTx, protoTx_length, txhash, hash_length);
+    ck_assert_mem_eq(txhash, fromhex("e8526cbec2aef3534d113ef40d699e77ff927375cd50d6825b586f3c302ceb26"), hash_length);
+	
+    free(protoTx);
+
+    const uint8_t* iv = fromhex("5c0ee0632b58cc92a443bdbc35caf28e");
     
+    size_t iv_length = 16;
+    uint8_t iv_char[iv_length];
+    memset(iv_char, 0, iv_length);
+    memcpy(iv_char, iv, iv_length);
+    ck_assert_mem_eq(iv_char, fromhex("5c0ee0632b58cc92a443bdbc35caf28e"), iv_length);
+
+    const uint8_t* data = fromhex("e1002da7462641e041c1d7cb4e870263a1391b9923f82014cddcc6ae83b195fc2deedce795dc0704dde2b1b27a8a8a7aa00e9daffaf8888b2cb12988ba1a530832cb63ca92a804c42222b5eff4e8bf2d");
+    size_t data_length = 80;
+    uint8_t data_char[data_length];
+    memset(data_char, 0, data_length);
+    memcpy(data_char, data, data_length);
+
+    uint8_t password_hash[hash_length];
+    memset(password_hash, 0, hash_length);
+    blake2b(fromhex(""), 0, password_hash, hash_length);
+
+    ck_assert_mem_eq(iv_char, fromhex("5c0ee0632b58cc92a443bdbc35caf28e"), iv_length);
+    ck_assert_mem_eq(data_char, fromhex("e1002da7462641e041c1d7cb4e870263a1391b9923f82014cddcc6ae83b195fc2deedce795dc0704dde2b1b27a8a8a7aa00e9daffaf8888b2cb12988ba1a530832cb63ca92a804c42222b5eff4e8bf2d"), data_length);
+    ck_assert_mem_eq(password_hash, fromhex("0e5751c026e543b2e8ab2eb06099daa1d1e5df47778f7787faab45cdf12fe3a8"), hash_length);
+
+    AES_KEY aes_key;
+    AES_set_decrypt_key(password_hash, 256, &aes_key);
+    size_t decrypt_result_length = 65;
+    unsigned char decrypt_result[decrypt_result_length];
+    size_t private_key_char_length = 65;
+    char private_key_char[private_key_char_length];
+    memset(decrypt_result, 0, decrypt_result_length);
+    memset(private_key_char, 0, private_key_char_length);
+
+    AES_cbc_encrypt(data_char, decrypt_result, data_length, &aes_key, iv_char, AES_DECRYPT);
+    decrypt_result[64] = 0;
+    sprintf(private_key_char, "%s", decrypt_result);
+
+
+    ck_assert_str_eq(private_key_char, "f35776c86f811d9ab1c66cadc0f503f519bf21898e589c2f26d646e472bfacb2");
+
+    size_t private_key_length = 32;
+    unsigned char private_key[private_key_length];
+    memset(private_key, 0, private_key_length);
+    memcpy(private_key, fromhex(private_key_char), private_key_length);
+
+    ck_assert_mem_eq(private_key, fromhex("f35776c86f811d9ab1c66cadc0f503f519bf21898e589c2f26d646e472bfacb2"), private_key_length);
+
+    size_t signature_length = 64;
+    uint8_t signature[signature_length];
+    memset(signature, 0, signature_length);
     
+    uint8_t recovery;
+
+    const ecdsa_curve *curve = &secp256k1;
+    ecdsa_sign_digest(curve, private_key, txhash, signature, &recovery, NULL);
+    ck_assert_mem_eq(signature, fromhex("f0d8d437b9b0c6175fbaee606c7abcdd2e91233a2e4c2ea8e1d42f96a7be1dba68dfa4d05e506825816e0cd5648139afe9b81b5cc43b840d31a3110f6940e8e1"), signature_length);
+    ck_assert_int_eq(recovery, 0);
 }
 END_TEST

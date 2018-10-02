@@ -35,6 +35,7 @@ CFLAGS += -DUSE_NEM=1
 CFLAGS += -DUSE_CARDANO=1
 CFLAGS += -DUSE_HYCON=1
 CFLAGS += $(shell pkg-config --cflags openssl)
+CFLAGS += $(shell pkg-config --cflags protobuf)
 
 # disable certain optimizations and features when small footprint is required
 ifdef SMALL
@@ -64,11 +65,12 @@ SRCS  += rc4.c
 SRCS  += nem.c
 SRCS  += segwit_addr.c cash_addr.c
 SRCS  += memzero.c
+SRCS  += protob/hyconTx.pb-c.c
 
 OBJS   = $(SRCS:.c=.o)
 
-TESTLIBS = $(shell pkg-config --libs check) -lpthread -lm
-TESTSSLLIBS = $(shell pkg-config --libs openssl)
+TESTLIBS = $(shell pkg-config --libs check) -lcrypto -lpthread -lm -L/usr/local/lib -lprotobuf-c
+TESTSSLLIBS = $(shell pkg-config --libs openssl) -lcrypto -lpthread -lm -L/usr/local/lib -lprotobuf-c
 
 all: tools tests
 
@@ -86,7 +88,7 @@ tests/test_check: tests/test_check.o $(OBJS)
 	$(CC) tests/test_check.o $(OBJS) $(TESTLIBS) -o tests/test_check
 
 tests/test_speed: tests/test_speed.o $(OBJS)
-	$(CC) tests/test_speed.o $(OBJS) -o tests/test_speed
+	$(CC) tests/test_speed.o $(OBJS) -L/usr/local/lib -lprotobuf-c -o tests/test_speed
 
 tests/test_openssl: tests/test_openssl.o $(OBJS)
 	$(CC) tests/test_openssl.o $(OBJS) $(TESTSSLLIBS) -o tests/test_openssl
