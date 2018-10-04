@@ -31,6 +31,12 @@
 #include "ed25519-donna/ed25519.h"
 #include "options.h"
 
+#if USE_HYCON
+#include "base58.h"
+#include "blake2b.h"
+#include "address.h"
+#endif
+
 typedef struct {
 	const char *bip32_name;    // string for generating BIP32 xprv from seed
 	const ecdsa_curve *params; // ecdsa curve parameters, null for ed25519
@@ -58,7 +64,9 @@ int hdnode_from_xpub(uint32_t depth, uint32_t child_num, const uint8_t *chain_co
 int hdnode_from_xprv(uint32_t depth, uint32_t child_num, const uint8_t *chain_code, const uint8_t *private_key, const char *curve, HDNode *out);
 
 int hdnode_from_seed(const uint8_t *seed, int seed_len, const char *curve, HDNode *out);
-
+#if USE_HYCON
+int hdnode_from_seed_hycon(const uint8_t *seed, int seed_len, HDNode *out);
+#endif
 #define hdnode_private_ckd_prime(X, I) hdnode_private_ckd((X), ((I) | 0x80000000))
 
 int hdnode_private_ckd(HDNode *inout, uint32_t i);
@@ -94,6 +102,13 @@ int hdnode_nem_decrypt(const HDNode *node, const ed25519_public_key public_key, 
 #endif
 
 int hdnode_sign(HDNode *node, const uint8_t *msg, uint32_t msg_len, HasherType hasher_sign, uint8_t *sig, uint8_t *pby, int (*is_canonical)(uint8_t by, uint8_t sig[64]));
+
+#if USE_HYCON
+int hdnode_hycon_sign_tx(HDNode *node, const uint8_t* txhash, const size_t txhash_len, uint8_t signature, uint8_t recovery, int (*is_canonical)(uint8_t by, uint8_t sig[64]));
+int hdnode_hycon_hash_password(const char* password, uint8_t password_hash);
+int hdnode_hycon_encrypt(HDNode *node, const uint8_t* password, uint8_t* iv, uint8_t* data);
+int hdnode_hycon_decrypt(const uint8_t* iv, const uint8_t* data, const size_t data_len, const uint8_t* password, uint8_t* private_key);
+#endif
 int hdnode_sign_digest(HDNode *node, const uint8_t *digest, uint8_t *sig, uint8_t *pby, int (*is_canonical)(uint8_t by, uint8_t sig[64]));
 
 int hdnode_get_shared_key(const HDNode *node, const uint8_t *peer_public_key, uint8_t *session_key, int *result_size);
@@ -106,6 +121,9 @@ int hdnode_deserialize(const char *str, uint32_t version_public, uint32_t versio
 
 void hdnode_get_address_raw(HDNode *node, uint32_t version, uint8_t *addr_raw);
 void hdnode_get_address(HDNode *node, uint32_t version, char *addr, int addrsize);
+#if USE_HYCON
+int hdnode_get_hycon_address(HDNode *node, char *address);
+#endif
 
 const curve_info *get_curve_by_name(const char *curve_name);
 

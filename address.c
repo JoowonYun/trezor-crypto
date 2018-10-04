@@ -87,3 +87,29 @@ void ethereum_address_checksum(const uint8_t *addr, char *address, bool rskip60,
 	}
 }
 #endif
+
+#if USE_HYCON
+void hycon_address_checksum(const uint8_t* address_arr, const size_t address_arr_len, char *checksum, const size_t checksum_len) 
+{
+	size_t hash_len = 32;
+	uint8_t hash[hash_len];
+	memset(hash, 0, hash_len);
+
+	blake2b(address_arr, address_arr_len, hash, hash_len);
+
+	size_t all_checksum_len = 44;
+	char all_checksum[all_checksum_len];
+	memset(all_checksum, 0, all_checksum_len);
+	b58enc(all_checksum, &all_checksum_len, hash, hash_len);
+
+	char checksum[checksum_len];
+	memset(checksum, 0, checksum_len);
+	memcpy(checksum, all_checksum, checksum_len - 1);
+}
+
+void hycon_address_to_address_arr(const char* address, uint8_t* address_arr, const usize_t address_arr_len) 
+{
+	memset(address_arr, 0, address_arr_len);
+	b58tobin(address_arr, &address_arr_len, address + 1);
+}
+#endif

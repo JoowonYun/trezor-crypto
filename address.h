@@ -35,5 +35,10 @@ bool address_check_prefix(const uint8_t *addr, uint32_t address_type);
 #if USE_ETHEREUM
 void ethereum_address_checksum(const uint8_t *addr, char *address, bool rskip60, uint32_t chain_id);
 #endif
+#if USE_HYCON
+#include "base58.h"
+#include "blake2b.h"
+void hycon_address_checksum(const uint8_t* address_arr, const size_t address_arr_len, char *checksum, const size_t checksum_len);
+#endif
 
 #endif
