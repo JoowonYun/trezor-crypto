@@ -122,7 +122,7 @@ int hdnode_deserialize(const char *str, uint32_t version_public, uint32_t versio
 void hdnode_get_address_raw(HDNode *node, uint32_t version, uint8_t *addr_raw);
 void hdnode_get_address(HDNode *node, uint32_t version, char *addr, int addrsize);
 #if USE_HYCON
-int hdnode_get_hycon_address(HDNode *node, char *address);
+int hdnode_get_hycon_address(HDNode *node, char *address, const size_t address_len);
 #endif
 
 const curve_info *get_curve_by_name(const char *curve_name);

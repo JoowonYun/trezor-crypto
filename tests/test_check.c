@@ -5127,6 +5127,9 @@ Suite *test_suite(void)
 	tc = tcase_create("bip32-hycon");
 	tcase_add_test(tc, test_bip32_hycon_hdnode);
 	tcase_add_test(tc, test_hycon_sign);
+	tcase_add_test(tc, test_bip32_hycon_address_checksum);
+	tcase_add_test(tc, test_bip32_hycon_normal_address);
+	tcase_add_test(tc, test_bip32_hycon_normal_address);
 	suite_add_tcase(s, tc);
 #endif
 
