@@ -55,6 +55,7 @@
 #include "base58.h"
 #include "blake2b.h"
 #include "address.h"
+#include "rand.h"
 #include "protob/hyconTx.pb-c.h"
 #endif
 
@@ -849,10 +850,23 @@ int hdnode_hycon_hash_password(const char* password, uint8_t* password_hash)
 
 	return 1;
 }
-//int hdnode_hycon_encrypt(HDNode *node, const uint8_t* password, uint8_t* iv, uint8_t* data)
-//{
-//	return 1;
-//}
+int hdnode_hycon_encrypt(HDNode *node, const uint8_t* password, uint8_t* iv, const size_t iv_len, uint8_t* data, const size_t data_len)
+{
+	memset(iv, 0, iv_len);
+	random_buffer(iv, iv_len);
+
+	size_t hash_len = 32;
+	uint8_t key[hash_len];
+	blake2b(password, hash_len, key, hash_len);
+
+	AES_KEY aes_key;
+	AES_set_encrypt_key(key, 256, &aes_key);
+
+	memset(data, 0, data_len);
+	AES_cbc_encrypt(node->private_key, data, hash_len, &aes_key, iv, AES_ENCRYPT);
+
+	return 1;
+}
 int hdnode_hycon_decrypt(uint8_t* iv, const uint8_t* data, const size_t data_len, const uint8_t* password, uint8_t* private_key)
 {
 	AES_KEY aes_key;

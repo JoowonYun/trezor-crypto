@@ -274,3 +274,30 @@ START_TEST(test_hycon_decrypt_private_key)
     ck_assert_mem_eq(private_key, fromhex("f35776c86f811d9ab1c66cadc0f503f519bf21898e589c2f26d646e472bfacb2"), hash_len);
 }
 END_TEST
+
+START_TEST(test_hycon_encrypt_and_decrypt)
+{
+    HDNode node;
+
+    size_t seed_len = 64;
+    uint8_t seed[seed_len + 2];
+    mnemonic_to_seed("way prefer push tooth bench hover orchard brother crumble nothing wink retire", "", seed, 0);
+    hdnode_from_seed_hycon(seed, seed_len, &node);
+
+    size_t hash_len = 32;
+    uint8_t password_hash[hash_len];
+    hdnode_hycon_hash_password("", password_hash);
+
+    size_t iv_len = 16;
+    uint8_t iv[iv_len];
+
+    size_t data_len = 80;
+    uint8_t data[data_len];
+    hdnode_hycon_encrypt(&node, password_hash, iv, iv_len, data, data_len);
+
+    uint8_t private_key[hash_len];
+    hdnode_hycon_decrypt(iv, data, data_len, password_hash, private_key);
+
+    ck_assert_mem_eq(private_key, node.private_key, hash_len);
+}
+END_TEST

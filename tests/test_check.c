@@ -5133,6 +5133,7 @@ Suite *test_suite(void)
 	tcase_add_test(tc, test_hycon_address_to_address_arr);
 	tcase_add_test(tc, test_hycon_sign_tx);
 	tcase_add_test(tc, test_hycon_decrypt_private_key);
+	tcase_add_test(tc, test_hycon_encrypt_and_decrypt);
 	suite_add_tcase(s, tc);
 #endif
 
