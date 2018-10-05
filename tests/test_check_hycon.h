@@ -211,3 +211,39 @@ START_TEST(test_bip32_hycon_bip39_address)
     ck_assert_str_eq(address_char, "H3fFn71jR6G33sAVMASDtLFhrq38h8FQ1");
 }
 END_TEST
+
+START_TEST(test_hycon_address_to_address_arr) 
+{
+    size_t address_arr_len = 20;
+    uint8_t address_arr[address_arr_len];
+    hycon_address_to_address_arr("Hfq92VRKN4gRsc3pze7JMsWPB2EzADeG", address_arr, address_arr_len);
+    ck_assert_mem_eq(address_arr, fromhex("4366e2a531a891233fd59cfa5f062a0f1018af6a"), address_arr_len);
+}
+END_TEST
+
+// START_TEST(test_hycon_sign_tx)
+// {
+//     HDNode node;
+
+//     size_t seed_len = 64;
+//     uint8_t seed[seed_len + 2];
+//     mnemonic_to_seed("way prefer push tooth bench hover orchard brother crumble nothing wink retire", "", seed, 0);
+//     hdnode_from_seed_hycon(seed, seed_len, &node);
+
+//     size_t address_arr_len = 20;
+//     uint8_t from_address_arr[address_arr_len];
+//     hycon_address_to_address_arr("Hfq92VRKN4gRsc3pze7JMsWPB2EzADeG", from_address_arr, address_arr_len);
+//     ProtobufCBinaryData from_address;
+//     from_address.len = address_arr_len;
+//     from_address.data = from_address_arr;
+
+//     uint8_t to_address_arr[address_arr_len];
+//     hycon_address_to_address_arr("H3fFn71jR6G33sAVMASDtLFhrq38h8FQ1", to_address_arr, address_arr_len);
+//     ProtobufCBinaryData to_address;
+//     to_address.len = address_arr_len;
+//     to_address.data = to_address_arr;
+
+
+
+//     hdnode_hycon_sign_tx(HDNode *node, const uint8_t* txhash, uint8_t* signature, uint8_t recovery)
+// }

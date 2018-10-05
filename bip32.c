@@ -785,11 +785,9 @@ int hdnode_hycon_sign_tx(HDNode *node, const uint8_t* txhash, uint8_t* signature
 	return 1;
 }
 
-#ifndef FROM_HEX
-#define FROM_HEX
 #define FROMHEX_MAXLEN 512
 
-const uint8_t *fromhex1(const char *str)
+const uint8_t *fromHex(const char *str)
 {
 	static uint8_t buf[FROMHEX_MAXLEN];
 	size_t len = strlen(str) / 2;
@@ -804,14 +802,13 @@ const uint8_t *fromhex1(const char *str)
 	}
 	return buf;
 }
-#endif
 
 int hdnode_hycon_hash_password(const char* password, uint8_t* password_hash) 
 {
 	size_t password_len = strlen(password);
 	size_t password_hash_len = 32;
 	memset(password_hash, 0, password_hash_len);
-	blake2b(fromhex1(password), password_len / 2, password_hash, password_hash_len);
+	blake2b(fromHex(password), password_len / 2, password_hash, password_hash_len);
 
 	return 1;
 }
@@ -836,7 +833,7 @@ int hdnode_hycon_decrypt(uint8_t* iv, const uint8_t* data, const size_t data_len
 
     size_t private_key_length = 32;
     memset(private_key, 0, private_key_length);
-    memcpy(private_key, fromhex1(private_key_char), private_key_length);
+    memcpy(private_key, fromHex(private_key_char), private_key_length);
 	
 	return 1;
 }
