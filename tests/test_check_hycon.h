@@ -216,7 +216,7 @@ START_TEST(test_hycon_address_to_address_arr)
 {
     size_t address_arr_len = 20;
     uint8_t address_arr[address_arr_len];
-    hycon_address_to_address_arr("Hfq92VRKN4gRsc3pze7JMsWPB2EzADeG", address_arr, address_arr_len);
+    hycon_address_to_address_arr("HwTsQGpbicAZsXcmSHN8XmcNR9wXHtw7", address_arr, address_arr_len);
     ck_assert_mem_eq(address_arr, fromhex("4366e2a531a891233fd59cfa5f062a0f1018af6a"), address_arr_len);
 }
 END_TEST
