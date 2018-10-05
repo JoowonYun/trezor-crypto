@@ -88,7 +88,7 @@ tests/test_check: tests/test_check.o $(OBJS)
 	$(CC) tests/test_check.o $(OBJS) $(TESTLIBS) -o tests/test_check
 
 tests/test_speed: tests/test_speed.o $(OBJS)
-	$(CC) tests/test_speed.o $(OBJS) -L/usr/local/lib -lprotobuf-c -o tests/test_speed
+	$(CC) tests/test_speed.o $(OBJS) -L/usr/local/lib -lprotobuf-c -o tests/test_speed -lcrypto
 
 tests/test_openssl: tests/test_openssl.o $(OBJS)
 	$(CC) tests/test_openssl.o $(OBJS) $(TESTSSLLIBS) -o tests/test_openssl

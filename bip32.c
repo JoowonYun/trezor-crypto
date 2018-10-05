@@ -49,6 +49,13 @@
 #include "pbkdf2.h"
 #endif
 #include "memzero.h"
+#if USE_HYCON
+#include <stdio.h>
+#include <openssl/aes.h>
+#include "base58.h"
+#include "blake2b.h"
+#include "address.h"
+#endif
 
 const curve_info ed25519_info = {
 	.bip32_name = "ed25519 seed",
@@ -186,17 +193,17 @@ int hdnode_from_seed(const uint8_t *seed, int seed_len, const char* curve, HDNod
 }
 
 #if USE_HYCON
-int int hdnode_from_seed_hycon(const uint8_t *seed, int seed_len, HDNode *out) 
+int hdnode_from_seed_hycon(const uint8_t *seed, int seed_len, HDNode *out) 
 {
 	memset(out, 0, sizeof(HDNode));
-	hdnode_from_seed(seed, seed_len, SECP256K1, &out);
+	hdnode_from_seed(seed, seed_len, SECP256K1_NAME, out);
 
-	hdnode_private_ckd_prime(&out, 44);
-    hdnode_private_ckd_prime(&out, 1397);
-    hdnode_private_ckd_prime(&out, 0);
-    hdnode_private_ckd(&out, 0);
-    hdnode_private_ckd(&out, 0);
-    hdnode_fill_public_key(&out);
+	hdnode_private_ckd_prime(out, 44);
+    hdnode_private_ckd_prime(out, 1397);
+    hdnode_private_ckd_prime(out, 0);
+    hdnode_private_ckd(out, 0);
+    hdnode_private_ckd(out, 0);
+    hdnode_fill_public_key(out);
 
 	return 1;
 }
@@ -580,14 +587,14 @@ int hdnode_get_hycon_address(HDNode *node, char *address, const size_t address_l
 		address_arr[i - start_idx] = hash[i];
 	}
 
-	size_t address_str_len = 28;
+	size_t address_str_len = 29;
 	char address_str[address_str_len];
 	memset(address_str, 0, address_arr_len);
 	b58enc(address_str, &address_str_len, address_arr, address_arr_len);
 
-	size_t checksum_len = 4;
-	char checksum[checksum_len + 1];
-	memset(checksum, 0, checksum_len + 1);
+	size_t checksum_len = 5;
+	char checksum[checksum_len];
+	memset(checksum, 0, checksum_len);
 	hycon_address_checksum(address_arr, address_arr_len, checksum, checksum_len);
 
 	memset(address, 0, address_len);
@@ -770,7 +777,7 @@ int hdnode_sign(HDNode *node, const uint8_t *msg, uint32_t msg_len, HasherType h
 }
 
 #if USE_HYCON
-int hdnode_hycon_sign_tx(HDNode *node, const uint8_t* txhash, const size_t txhash_len, uint8_t signature, uint8_t recovery, int (*is_canonical)(uint8_t by, uint8_t sig[64])) 
+int hdnode_hycon_sign_tx(HDNode *node, const uint8_t* txhash, uint8_t* signature, uint8_t recovery) 
 {
 	const ecdsa_curve *curve = &secp256k1;
     ecdsa_sign_digest(curve, node->private_key, txhash, signature, &recovery, NULL);
@@ -778,20 +785,41 @@ int hdnode_hycon_sign_tx(HDNode *node, const uint8_t* txhash, const size_t txhas
 	return 1;
 }
 
+#ifndef FROM_HEX
+#define FROM_HEX
+#define FROMHEX_MAXLEN 512
+
+const uint8_t *fromhex1(const char *str)
+{
+	static uint8_t buf[FROMHEX_MAXLEN];
+	size_t len = strlen(str) / 2;
+	if (len > FROMHEX_MAXLEN) len = FROMHEX_MAXLEN;
+	for (size_t i = 0; i < len; i++) {
+		uint8_t c = 0;
+		if (str[i * 2] >= '0' && str[i*2] <= '9') c += (str[i * 2] - '0') << 4;
+		if ((str[i * 2] & ~0x20) >= 'A' && (str[i*2] & ~0x20) <= 'F') c += (10 + (str[i * 2] & ~0x20) - 'A') << 4;
+		if (str[i * 2 + 1] >= '0' && str[i * 2 + 1] <= '9') c += (str[i * 2 + 1] - '0');
+		if ((str[i * 2 + 1] & ~0x20) >= 'A' && (str[i * 2 + 1] & ~0x20) <= 'F') c += (10 + (str[i * 2 + 1] & ~0x20) - 'A');
+		buf[i] = c;
+	}
+	return buf;
+}
+#endif
+
 int hdnode_hycon_hash_password(const char* password, uint8_t* password_hash) 
 {
 	size_t password_len = strlen(password);
 	size_t password_hash_len = 32;
 	memset(password_hash, 0, password_hash_len);
-	blake2b(fromhex(password), password_len / 2, password_hash, password_hash_len);
+	blake2b(fromhex1(password), password_len / 2, password_hash, password_hash_len);
 
 	return 1;
 }
-int hdnode_hycon_encrypt(HDNode *node, const uint8_t* password, uint8_t* iv, uint8_t* data)
-{
-	return 1;
-}
-int hdnode_hycon_decrypt(const uint8_t* iv, const uint8_t* data, const size_t data_len, const uint8_t* password, uint8_t* private_key)
+//int hdnode_hycon_encrypt(HDNode *node, const uint8_t* password, uint8_t* iv, uint8_t* data)
+//{
+//	return 1;
+//}
+int hdnode_hycon_decrypt(uint8_t* iv, const uint8_t* data, const size_t data_len, const uint8_t* password, uint8_t* private_key)
 {
 	AES_KEY aes_key;
     AES_set_decrypt_key(password, 256, &aes_key);
@@ -808,7 +836,7 @@ int hdnode_hycon_decrypt(const uint8_t* iv, const uint8_t* data, const size_t da
 
     size_t private_key_length = 32;
     memset(private_key, 0, private_key_length);
-    memcpy(private_key, fromhex(private_key_char), private_key_length);
+    memcpy(private_key, fromhex1(private_key_char), private_key_length);
 	
 	return 1;
 }

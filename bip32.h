@@ -31,12 +31,6 @@
 #include "ed25519-donna/ed25519.h"
 #include "options.h"
 
-#if USE_HYCON
-#include "base58.h"
-#include "blake2b.h"
-#include "address.h"
-#endif
-
 typedef struct {
 	const char *bip32_name;    // string for generating BIP32 xprv from seed
 	const ecdsa_curve *params; // ecdsa curve parameters, null for ed25519
@@ -104,10 +98,10 @@ int hdnode_nem_decrypt(const HDNode *node, const ed25519_public_key public_key, 
 int hdnode_sign(HDNode *node, const uint8_t *msg, uint32_t msg_len, HasherType hasher_sign, uint8_t *sig, uint8_t *pby, int (*is_canonical)(uint8_t by, uint8_t sig[64]));
 
 #if USE_HYCON
-int hdnode_hycon_sign_tx(HDNode *node, const uint8_t* txhash, const size_t txhash_len, uint8_t signature, uint8_t recovery, int (*is_canonical)(uint8_t by, uint8_t sig[64]));
-int hdnode_hycon_hash_password(const char* password, uint8_t password_hash);
-int hdnode_hycon_encrypt(HDNode *node, const uint8_t* password, uint8_t* iv, uint8_t* data);
-int hdnode_hycon_decrypt(const uint8_t* iv, const uint8_t* data, const size_t data_len, const uint8_t* password, uint8_t* private_key);
+int hdnode_hycon_sign_tx(HDNode *node, const uint8_t* txhash, uint8_t* signature, uint8_t recovery);
+int hdnode_hycon_hash_password(const char* password, uint8_t* password_hash);
+//int hdnode_hycon_encrypt(HDNode *node, const uint8_t* password, uint8_t* iv, uint8_t* data);
+int hdnode_hycon_decrypt(uint8_t* iv, const uint8_t* data, const size_t data_len, const uint8_t* password, uint8_t* private_key);
 #endif
 int hdnode_sign_digest(HDNode *node, const uint8_t *digest, uint8_t *sig, uint8_t *pby, int (*is_canonical)(uint8_t by, uint8_t sig[64]));
 
