@@ -99,6 +99,7 @@ int hdnode_sign(HDNode *node, const uint8_t *msg, uint32_t msg_len, HasherType h
 
 #if USE_HYCON
 int hdnode_hycon_sign_tx(HDNode *node, const uint8_t* txhash, uint8_t* signature, uint8_t recovery);
+int hdnode_hycon_encode_tx(const char* from_address_str, const char* to_address_str, const uint32_t nonce, const uint64_t amount, const uint64_t fee, uint8_t* txhash, size_t hash_len)
 int hdnode_hycon_hash_password(const char* password, uint8_t* password_hash);
 //int hdnode_hycon_encrypt(HDNode *node, const uint8_t* password, uint8_t* iv, uint8_t* data);
 int hdnode_hycon_decrypt(uint8_t* iv, const uint8_t* data, const size_t data_len, const uint8_t* password, uint8_t* private_key);

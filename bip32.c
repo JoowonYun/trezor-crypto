@@ -55,6 +55,7 @@
 #include "base58.h"
 #include "blake2b.h"
 #include "address.h"
+#include "protob/hyconTx.pb-c.h"
 #endif
 
 const curve_info ed25519_info = {
@@ -570,6 +571,7 @@ void hdnode_get_address(HDNode *node, uint32_t version, char *addr, int addrsize
 }
 
 #if USE_HYCON
+
 int hdnode_get_hycon_address(HDNode *node, char *address, const size_t address_len) 
 {
 	size_t pubick_key_len = 33;
@@ -801,6 +803,41 @@ const uint8_t *fromHex(const char *str)
 		buf[i] = c;
 	}
 	return buf;
+}
+
+int hdnode_hycon_encode_tx(const char* from_address_str, const char* to_address_str, const uint32_t nonce, const uint64_t amount, const uint64_t fee, uint8_t* txhash, size_t hash_len)
+{
+	size_t address_arr_len = 20;
+	uint8_t from_address_arr[address_arr_len];
+	hycon_address_to_address_arr(from_address_str, from_address_arr, address_arr_len);
+	ProtobufCBinaryData from_address;
+    from_address.len = address_arr_len;
+    from_address.data = from_address_arr;
+
+	uint8_t to_address_arr[address_arr_len];
+	hycon_address_to_address_arr(to_address_str, to_address_arr, address_arr_len);
+	ProtobufCBinaryData to_address;
+    to_address.len = address_arr_len;
+    to_address.data = to_address_arr;
+
+	HyconTx tx = HYCON_TX__INIT;
+    tx.to =  to_address;
+    tx.from = from_address;
+    tx.nonce = nonce;
+    tx.amount = amount;
+    tx.fee = fee;
+
+	uint8_t* protoTx;
+	size_t protoTx_len = hycon_tx__get_packed_size(&tx);
+	protoTx = malloc(protoTx_len);
+	hycon_tx__pack(&tx, protoTx);
+
+	memset(txhash, 0, hash_len);
+	blake2b(protoTx, protoTx_len, txhash, hash_len);
+
+	free(protoTx);
+
+	return 1;
 }
 
 int hdnode_hycon_hash_password(const char* password, uint8_t* password_hash) 

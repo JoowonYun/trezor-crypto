@@ -221,29 +221,25 @@ START_TEST(test_hycon_address_to_address_arr)
 }
 END_TEST
 
-// START_TEST(test_hycon_sign_tx)
-// {
-//     HDNode node;
+START_TEST(test_hycon_sign_tx)
+{
+    HDNode node;
 
-//     size_t seed_len = 64;
-//     uint8_t seed[seed_len + 2];
-//     mnemonic_to_seed("way prefer push tooth bench hover orchard brother crumble nothing wink retire", "", seed, 0);
-//     hdnode_from_seed_hycon(seed, seed_len, &node);
+    size_t seed_len = 64;
+    uint8_t seed[seed_len + 2];
+    mnemonic_to_seed("ring crime symptom enough erupt lady behave ramp apart settle citizen junk", "", seed, 0);
+    hdnode_from_seed_hycon(seed, seed_len, &node);
 
-//     size_t address_arr_len = 20;
-//     uint8_t from_address_arr[address_arr_len];
-//     hycon_address_to_address_arr("Hfq92VRKN4gRsc3pze7JMsWPB2EzADeG", from_address_arr, address_arr_len);
-//     ProtobufCBinaryData from_address;
-//     from_address.len = address_arr_len;
-//     from_address.data = from_address_arr;
+    size_t hash_len = 32;
+    uint8_t txhash[hash_len];
+    hdnode_hycon_encode_tx("HwTsQGpbicAZsXcmSHN8XmcNR9wXHtw7", "H3GKJpnAXne7iGBLjmHQLFQxpJU8A4wJo", 7, 100000000, 1, txhash, hash_len)
 
-//     uint8_t to_address_arr[address_arr_len];
-//     hycon_address_to_address_arr("H3fFn71jR6G33sAVMASDtLFhrq38h8FQ1", to_address_arr, address_arr_len);
-//     ProtobufCBinaryData to_address;
-//     to_address.len = address_arr_len;
-//     to_address.data = to_address_arr;
+    size_t signature_len = 64;
+    uint8_t signature[signature_len];
+    
+    uint8_t recovery;
+    hdnode_hycon_sign_tx(&node, txhash, signature, recovery)
 
-
-
-//     hdnode_hycon_sign_tx(HDNode *node, const uint8_t* txhash, uint8_t* signature, uint8_t recovery)
-// }
+    ck_assert_mem_eq(signature, fromhex("f0d8d437b9b0c6175fbaee606c7abcdd2e91233a2e4c2ea8e1d42f96a7be1dba68dfa4d05e506825816e0cd5648139afe9b81b5cc43b840d31a3110f6940e8e1"), signature_len);
+    ck_assert_int_eq(recovery, 0);
+}
