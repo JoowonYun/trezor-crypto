@@ -779,10 +779,10 @@ int hdnode_sign(HDNode *node, const uint8_t *msg, uint32_t msg_len, HasherType h
 }
 
 #if USE_HYCON
-int hdnode_hycon_sign_tx(HDNode *node, const uint8_t* txhash, uint8_t* signature, uint8_t recovery) 
+int hdnode_hycon_sign_tx(HDNode *node, const uint8_t* txhash, uint8_t* signature, uint8_t* recovery) 
 {
 	const ecdsa_curve *curve = &secp256k1;
-    ecdsa_sign_digest(curve, node->private_key, txhash, signature, &recovery, NULL);
+    ecdsa_sign_digest(curve, node->private_key, txhash, signature, recovery, NULL);
 
 	return 1;
 }

@@ -109,11 +109,11 @@ void hycon_address_checksum(const uint8_t* address_arr, const size_t address_arr
 
 void hycon_address_to_address_arr(const char* address, uint8_t* address_arr, size_t address_arr_len) 
 {
-	size_t addr_len = 28;
+	size_t addr_len = strlen(address) - 4;
 	char addr[addr_len];
 	memset(addr, 0, addr_len);
 	memcpy(addr, address+1, addr_len-1);
-
+	
 	memset(address_arr, 0, address_arr_len);
 	b58tobin(address_arr, &address_arr_len, addr);
 }

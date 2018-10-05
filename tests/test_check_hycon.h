@@ -232,14 +232,17 @@ START_TEST(test_hycon_sign_tx)
 
     size_t hash_len = 32;
     uint8_t txhash[hash_len];
-    hdnode_hycon_encode_tx("HwTsQGpbicAZsXcmSHN8XmcNR9wXHtw7", "H3GKJpnAXne7iGBLjmHQLFQxpJU8A4wJo", 7, 100000000, 1, txhash, hash_len)
+    hdnode_hycon_encode_tx("HwTsQGpbicAZsXcmSHN8XmcNR9wXHtw7", "H3GKJpnAXne7iGBLjmHQLFQxpJU8A4wJo", 7, 100000000, 1, txhash, hash_len);
+
+    ck_assert_mem_eq(txhash, fromhex("e8526cbec2aef3534d113ef40d699e77ff927375cd50d6825b586f3c302ceb26"), hash_len);
 
     size_t signature_len = 64;
     uint8_t signature[signature_len];
     
-    uint8_t recovery;
-    hdnode_hycon_sign_tx(&node, txhash, signature, recovery)
+    uint8_t recovery = 1;
+    hdnode_hycon_sign_tx(&node, txhash, signature, &recovery);
 
     ck_assert_mem_eq(signature, fromhex("f0d8d437b9b0c6175fbaee606c7abcdd2e91233a2e4c2ea8e1d42f96a7be1dba68dfa4d05e506825816e0cd5648139afe9b81b5cc43b840d31a3110f6940e8e1"), signature_len);
     ck_assert_int_eq(recovery, 0);
 }
+END_TEST

@@ -5131,6 +5131,7 @@ Suite *test_suite(void)
 	tcase_add_test(tc, test_bip32_hycon_normal_address);
 	tcase_add_test(tc, test_bip32_hycon_bip39_address);
 	tcase_add_test(tc, test_hycon_address_to_address_arr);
+	tcase_add_test(tc, test_hycon_sign_tx);
 	suite_add_tcase(s, tc);
 #endif
 
