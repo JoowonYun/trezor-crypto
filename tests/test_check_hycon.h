@@ -246,3 +246,31 @@ START_TEST(test_hycon_sign_tx)
     ck_assert_int_eq(recovery, 0);
 }
 END_TEST
+
+START_TEST(test_hycon_decrypt_private_key) 
+{
+    const uint8_t* iv = fromhex("5c0ee0632b58cc92a443bdbc35caf28e");
+    
+    size_t iv_length = 16;
+    uint8_t iv_char[iv_length];
+    memset(iv_char, 0, iv_length);
+    memcpy(iv_char, iv, iv_length);
+    ck_assert_mem_eq(iv_char, fromhex("5c0ee0632b58cc92a443bdbc35caf28e"), iv_length);
+
+    const uint8_t* data = fromhex("e1002da7462641e041c1d7cb4e870263a1391b9923f82014cddcc6ae83b195fc2deedce795dc0704dde2b1b27a8a8a7aa00e9daffaf8888b2cb12988ba1a530832cb63ca92a804c42222b5eff4e8bf2d");
+    size_t data_len = 80;
+    uint8_t data_char[data_len];
+    memset(data_char, 0, data_len);
+    memcpy(data_char, data, data_len);
+
+    size_t hash_len = 32;
+    uint8_t password_hash[hash_len];
+    hdnode_hycon_hash_password("", password_hash);
+
+    uint8_t private_key[hash_len];
+
+    hdnode_hycon_decrypt(iv_char, data_char, data_len, password_hash, private_key);
+
+    ck_assert_mem_eq(private_key, fromhex("f35776c86f811d9ab1c66cadc0f503f519bf21898e589c2f26d646e472bfacb2"), hash_len);
+}
+END_TEST
