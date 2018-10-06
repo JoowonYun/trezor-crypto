@@ -247,6 +247,32 @@ START_TEST(test_hycon_sign_tx)
 }
 END_TEST
 
+START_TEST(test_hycon_sign_tx_with_bip39)
+{
+    HDNode node;
+
+    size_t seed_len = 64;
+    uint8_t seed[seed_len + 2];
+    mnemonic_to_seed("ring crime symptom enough erupt lady behave ramp apart settle citizen junk", "TREZOR", seed, 0);
+    hdnode_from_seed_hycon(seed, seed_len, &node);
+
+    size_t hash_len = 32;
+    uint8_t txhash[hash_len];
+    hdnode_hycon_encode_tx("H2ijdMAHgqZfFdSkGrLv4eihVgRZcHfSA", "H3GKJpnAXne7iGBLjmHQLFQxpJU8A4wJo", 1, 99999997, 2, txhash, hash_len);
+
+    ck_assert_mem_eq(txhash, fromhex("daffcee3c9287c87e2552ca7b7e34565744417ab44b1227e78caaa97d501479d"), hash_len);
+
+    size_t signature_len = 64;
+    uint8_t signature[signature_len];
+    
+    uint8_t recovery = 1;
+    hdnode_hycon_sign_tx(&node, txhash, signature, &recovery);
+
+    ck_assert_mem_eq(signature, fromhex("2b8ec67834136270b183ec59232a014e600d8429a2c59cb707beec01b8dc01c9606aeb8fc0c61a414b298095e0c2f96487234f8c356ed071493b9328395c2953"), signature_len);
+    ck_assert_int_eq(recovery, 0);
+}
+END_TEST
+
 START_TEST(test_hycon_decrypt_private_key) 
 {
     const uint8_t* iv = fromhex("5c0ee0632b58cc92a443bdbc35caf28e");
@@ -275,6 +301,34 @@ START_TEST(test_hycon_decrypt_private_key)
 }
 END_TEST
 
+START_TEST(test_hycon_decrypt_private_key_with_password) 
+{
+    const uint8_t* iv = fromhex("4cd2042593ea106795d95307fd2716fd");
+    
+    size_t iv_length = 16;
+    uint8_t iv_char[iv_length];
+    memset(iv_char, 0, iv_length);
+    memcpy(iv_char, iv, iv_length);
+    ck_assert_mem_eq(iv_char, fromhex("4cd2042593ea106795d95307fd2716fd"), iv_length);
+
+    const uint8_t* data = fromhex("f56a9f2397c19492e9e225768041e8ba30ea139a154cbd5b0a37da2d9f364f3e6930449593c0839316fda48dd3630c85cc208442f5cf233e48a5778467ee19b083ac378735c6283c6fb32714a8155c1d");
+    size_t data_len = 80;
+    uint8_t data_char[data_len];
+    memset(data_char, 0, data_len);
+    memcpy(data_char, data, data_len);
+
+    size_t hash_len = 32;
+    uint8_t password_hash[hash_len];
+    hdnode_hycon_hash_password("11", password_hash);
+
+    uint8_t private_key[hash_len];
+
+    hdnode_hycon_decrypt(iv_char, data_char, data_len, password_hash, private_key);
+
+    ck_assert_mem_eq(private_key, fromhex("fe5a90b95ae42ef31e3ed674111a880b432a4556aedfe53a5c0109dfe49b3fc7"), hash_len);
+}
+END_TEST
+
 START_TEST(test_hycon_encrypt_and_decrypt)
 {
     HDNode node;
@@ -285,9 +339,65 @@ START_TEST(test_hycon_encrypt_and_decrypt)
     hdnode_from_seed_hycon(seed, seed_len, &node);
 
     size_t hash_len = 32;
-    uint8_t password_hash[hash_len + 1];
-    memset(password_hash, 0, hash_len + 1);
+    uint8_t password_hash[hash_len];
+    memset(password_hash, 0, hash_len);
     hdnode_hycon_hash_password("", password_hash);
+
+    size_t iv_len = 16;
+    uint8_t iv[iv_len];
+
+    size_t data_len = 80;
+    uint8_t data[data_len];
+    hdnode_hycon_encrypt(&node, password_hash, iv, iv_len, data, data_len);
+
+    uint8_t private_key[hash_len];
+    hdnode_hycon_decrypt(iv, data, data_len, password_hash, private_key);
+
+    ck_assert_mem_eq(private_key, node.private_key, hash_len);
+}
+END_TEST
+
+START_TEST(test_hycon_encrypt_and_decrypt_with_bip39)
+{
+    HDNode node;
+
+    size_t seed_len = 64;
+    uint8_t seed[seed_len + 2];
+    mnemonic_to_seed("way prefer push tooth bench hover orchard brother crumble nothing wink retire", "TREZOR", seed, 0);
+    hdnode_from_seed_hycon(seed, seed_len, &node);
+
+    size_t hash_len = 32;
+    uint8_t password_hash[hash_len];
+    memset(password_hash, 0, hash_len);
+    hdnode_hycon_hash_password("", password_hash);
+
+    size_t iv_len = 16;
+    uint8_t iv[iv_len];
+
+    size_t data_len = 80;
+    uint8_t data[data_len];
+    hdnode_hycon_encrypt(&node, password_hash, iv, iv_len, data, data_len);
+
+    uint8_t private_key[hash_len];
+    hdnode_hycon_decrypt(iv, data, data_len, password_hash, private_key);
+
+    ck_assert_mem_eq(private_key, node.private_key, hash_len);
+}
+END_TEST
+
+START_TEST(test_hycon_encrypt_and_decrypt_with_password)
+{
+    HDNode node;
+
+    size_t seed_len = 64;
+    uint8_t seed[seed_len + 2];
+    mnemonic_to_seed("way prefer push tooth bench hover orchard brother crumble nothing wink retire", "TREZOR", seed, 0);
+    hdnode_from_seed_hycon(seed, seed_len, &node);
+
+    size_t hash_len = 32;
+    uint8_t password_hash[hash_len];
+    memset(password_hash, 0, hash_len);
+    hdnode_hycon_hash_password("11", password_hash);
 
     size_t iv_len = 16;
     uint8_t iv[iv_len];

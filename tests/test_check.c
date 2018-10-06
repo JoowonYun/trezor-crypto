@@ -5132,8 +5132,12 @@ Suite *test_suite(void)
 	tcase_add_test(tc, test_bip32_hycon_bip39_address);
 	tcase_add_test(tc, test_hycon_address_to_address_arr);
 	tcase_add_test(tc, test_hycon_sign_tx);
+	tcase_add_test(tc, test_hycon_sign_tx_with_bip39);
 	tcase_add_test(tc, test_hycon_decrypt_private_key);
+	tcase_add_test(tc, test_hycon_decrypt_private_key_with_password);
 	tcase_add_test(tc, test_hycon_encrypt_and_decrypt);
+	tcase_add_test(tc, test_hycon_encrypt_and_decrypt_with_bip39);
+	tcase_add_test(tc, test_hycon_encrypt_and_decrypt_with_password);
 	suite_add_tcase(s, tc);
 #endif
 
