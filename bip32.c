@@ -855,15 +855,25 @@ int hdnode_hycon_encrypt(HDNode *node, const uint8_t* password, uint8_t* iv, con
 	memset(iv, 0, iv_len);
 	random_buffer(iv, iv_len);
 
+	uint8_t iv_enc[iv_len];
+	memset(iv_enc, 0, iv_len);
+	memcpy(iv_enc, iv, iv_len);
+
 	size_t hash_len = 32;
-	uint8_t key[hash_len];
-	blake2b(password, hash_len, key, hash_len);
+
+	size_t private_key_char_len = 64;
+	char private_key_char[private_key_char_len];
+	memset(private_key_char, 0, private_key_char_len);
+
+	for(size_t i=0; i<hash_len; ++i) {
+		sprintf(private_key_char + (i * 2), "%02x", (node->private_key)[i]);
+	}
 
 	AES_KEY aes_key;
-	AES_set_encrypt_key(key, 256, &aes_key);
+	AES_set_encrypt_key(password, 256, &aes_key);
 
 	memset(data, 0, data_len);
-	AES_cbc_encrypt(node->private_key, data, hash_len, &aes_key, iv, AES_ENCRYPT);
+	AES_cbc_encrypt((unsigned char*)private_key_char, data, private_key_char_len, &aes_key, iv_enc, AES_ENCRYPT);
 
 	return 1;
 }

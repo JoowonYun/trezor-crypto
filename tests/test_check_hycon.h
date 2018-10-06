@@ -285,7 +285,8 @@ START_TEST(test_hycon_encrypt_and_decrypt)
     hdnode_from_seed_hycon(seed, seed_len, &node);
 
     size_t hash_len = 32;
-    uint8_t password_hash[hash_len];
+    uint8_t password_hash[hash_len + 1];
+    memset(password_hash, 0, hash_len + 1);
     hdnode_hycon_hash_password("", password_hash);
 
     size_t iv_len = 16;
