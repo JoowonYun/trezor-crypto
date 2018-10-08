@@ -575,6 +575,11 @@ void hdnode_get_address(HDNode *node, uint32_t version, char *addr, int addrsize
 
 int hdnode_get_hycon_address(HDNode *node, char *address, const size_t address_len) 
 {
+	if(node == NULL) 
+	{
+		return 0;
+	}
+
 	size_t pubick_key_len = 33;
 	size_t hash_len = 32;
 	uint8_t hash[hash_len];
@@ -782,6 +787,11 @@ int hdnode_sign(HDNode *node, const uint8_t *msg, uint32_t msg_len, HasherType h
 #if USE_HYCON
 int hdnode_hycon_sign_tx(HDNode *node, const uint8_t* txhash, uint8_t* signature, uint8_t* recovery) 
 {
+	if(node == NULL, sizeof(txhash) != 32) 
+	{
+		return 0;
+	}
+
 	const ecdsa_curve *curve = &secp256k1;
     ecdsa_sign_digest(curve, node->private_key, txhash, signature, recovery, NULL);
 
@@ -811,12 +821,25 @@ int hdnode_hycon_encode_tx(const char* from_address_str, const char* to_address_
 	size_t address_arr_len = 20;
 	uint8_t from_address_arr[address_arr_len];
 	hycon_address_to_address_arr(from_address_str, from_address_arr, address_arr_len);
+	size_t checksum_len = 4;
+	size_t address_len = 28;
+	char checksum[checksum_len+1];
+	hycon_address_checksum(from_address_arr, address_arr_len, checksum, checksum_len);
+    if(strncmp(checksum, from_address_str + sizeof(from_address_str) - 4, checksum_len) == 0)
+	{
+		return 0;
+	}
 	ProtobufCBinaryData from_address;
     from_address.len = address_arr_len;
     from_address.data = from_address_arr;
 
 	uint8_t to_address_arr[address_arr_len];
 	hycon_address_to_address_arr(to_address_str, to_address_arr, address_arr_len);
+	hycon_address_checksum(to_address_arr, address_arr_len, checksum, checksum_len);
+    if(strncmp(checksum, to_address_str + sizeof(to_address_str) - 4, checksum_len) == 0) 
+	{
+		return 0;
+	}
 	ProtobufCBinaryData to_address;
     to_address.len = address_arr_len;
     to_address.data = to_address_arr;
@@ -853,6 +876,11 @@ int hdnode_hycon_hash_password(const char* password, uint8_t* password_hash)
 }
 int hdnode_hycon_encrypt(HDNode *node, const uint8_t* password, uint8_t* iv, const size_t iv_len, uint8_t* data, const size_t data_len)
 {
+	if(node == NULL) 
+	{
+		return 0;
+	}
+
 	memset(iv, 0, iv_len);
 	random_buffer(iv, iv_len);
 

@@ -51,10 +51,10 @@ START_TEST(test_bip32_hycon_hdnode)
     b58enc(checksum_all, &checksum_all_length, hash, hash_length);
     ck_assert_str_eq(checksum_all, "Htw7r9y6XHp26UbBx19Dn1hMF6V7niXHjR5vUNZdwvG");
 
-    size_t checksum_length = 5;
-    char checksum[checksum_length];
-    memset(checksum, 0, checksum_length);
-    memcpy(checksum, checksum_all, checksum_length-1);
+    size_t checksum_length = 4;
+    char checksum[checksum_length+1];
+    memset(checksum, 0, checksum_length+1);
+    memcpy(checksum, checksum_all, checksum_length);
     ck_assert_str_eq(checksum, "Htw7");
 
     size_t address_str_length = 33;
@@ -62,7 +62,7 @@ START_TEST(test_bip32_hycon_hdnode)
     memset(address_str, 0, address_str_length);
     address_str[0] = 'H';
     memcpy(address_str + 1, address, address_length-1);
-    memcpy(address_str + address_length, checksum, checksum_length -1);
+    memcpy(address_str + address_length, checksum, checksum_length);
     ck_assert_str_eq(address_str, "HwTsQGpbicAZsXcmSHN8XmcNR9wXHtw7");
 }
 END_TEST
@@ -170,8 +170,8 @@ END_TEST
 START_TEST(test_bip32_hycon_address_checksum)
 {
     size_t address_arr_len = 20;
-    size_t checksum_len = 5;
-    char checksum[checksum_len];
+    size_t checksum_len = 4;
+    char checksum[checksum_len+1];
     hycon_address_checksum(fromhex("4366e2a531a891233fd59cfa5f062a0f1018af6a"), address_arr_len, checksum, checksum_len);
 
     ck_assert_str_eq(checksum, "Htw7");
@@ -185,11 +185,17 @@ START_TEST(test_bip32_hycon_normal_address)
     size_t seed_len = 64;
     uint8_t seed[seed_len + 2];
     mnemonic_to_seed("way prefer push tooth bench hover orchard brother crumble nothing wink retire", "", seed, 0);
-    hdnode_from_seed_hycon(seed, seed_len, &node);
+    if(hdnode_from_seed_hycon(seed, seed_len, &node) == 0) 
+    {
+        ck_assert_str_eq("test_bip32_hycon_normal_address", "hdnode_from_seed_hycon");
+    }
 
     size_t address_char_len = 33;
     char address_char[address_char_len];
-    hdnode_get_hycon_address(&node, address_char, address_char_len);
+    if(hdnode_get_hycon_address(&node, address_char, address_char_len) == 0)
+    {
+        ck_assert_str_eq("test_bip32_hycon_normal_address", "hdnode_get_hycon_address");
+    }
 
     ck_assert_str_eq(address_char, "Hfq92VRKN4gRsc3pze7JMsWPB2EzADeG");
 }
@@ -206,7 +212,10 @@ START_TEST(test_bip32_hycon_bip39_address)
 
     size_t address_char_len = 33;
     char address_char[address_char_len];
-    hdnode_get_hycon_address(&node, address_char, address_char_len);
+    if(hdnode_get_hycon_address(&node, address_char, address_char_len) == 0) 
+    {
+        ck_assert_str_eq("test_bip32_hycon_bip39_address", "hdnode_get_hycon_address");
+    }
 
     ck_assert_str_eq(address_char, "H3fFn71jR6G33sAVMASDtLFhrq38h8FQ1");
 }
@@ -228,11 +237,17 @@ START_TEST(test_hycon_sign_tx)
     size_t seed_len = 64;
     uint8_t seed[seed_len + 2];
     mnemonic_to_seed("ring crime symptom enough erupt lady behave ramp apart settle citizen junk", "", seed, 0);
-    hdnode_from_seed_hycon(seed, seed_len, &node);
+    if(hdnode_from_seed_hycon(seed, seed_len, &node) == 0)
+    {
+        ck_assert_str_eq("test_hycon_sign_tx", "hdnode_from_seed_hycon");
+    }
 
     size_t hash_len = 32;
     uint8_t txhash[hash_len];
-    hdnode_hycon_encode_tx("HwTsQGpbicAZsXcmSHN8XmcNR9wXHtw7", "H3GKJpnAXne7iGBLjmHQLFQxpJU8A4wJo", 7, 100000000, 1, txhash, hash_len);
+    if(hdnode_hycon_encode_tx("HwTsQGpbicAZsXcmSHN8XmcNR9wXHtw7", "H3GKJpnAXne7iGBLjmHQLFQxpJU8A4wJo", 7, 100000000, 1, txhash, hash_len) == 0) 
+    {
+        ck_assert_str_eq("test_hycon_sign_tx", "hdnode_hycon_encode_tx");
+    }
 
     ck_assert_mem_eq(txhash, fromhex("e8526cbec2aef3534d113ef40d699e77ff927375cd50d6825b586f3c302ceb26"), hash_len);
 
@@ -240,7 +255,10 @@ START_TEST(test_hycon_sign_tx)
     uint8_t signature[signature_len];
     
     uint8_t recovery = 1;
-    hdnode_hycon_sign_tx(&node, txhash, signature, &recovery);
+    if(hdnode_hycon_sign_tx(&node, txhash, signature, &recovery) == 0)
+    {
+        ck_assert_str_eq("test_hycon_sign_tx", "hdnode_hycon_sign_tx");
+    }
 
     ck_assert_mem_eq(signature, fromhex("f0d8d437b9b0c6175fbaee606c7abcdd2e91233a2e4c2ea8e1d42f96a7be1dba68dfa4d05e506825816e0cd5648139afe9b81b5cc43b840d31a3110f6940e8e1"), signature_len);
     ck_assert_int_eq(recovery, 0);
@@ -258,7 +276,10 @@ START_TEST(test_hycon_sign_tx_with_bip39)
 
     size_t hash_len = 32;
     uint8_t txhash[hash_len];
-    hdnode_hycon_encode_tx("H2ijdMAHgqZfFdSkGrLv4eihVgRZcHfSA", "H3GKJpnAXne7iGBLjmHQLFQxpJU8A4wJo", 1, 99999997, 2, txhash, hash_len);
+    if(hdnode_hycon_encode_tx("H2ijdMAHgqZfFdSkGrLv4eihVgRZcHfSA", "H3GKJpnAXne7iGBLjmHQLFQxpJU8A4wJo", 1, 99999997, 2, txhash, hash_len) == 0)
+    {
+        ck_assert_str_eq("test_hycon_sign_tx_with_bip39", "hdnode_hycon_encode_tx");
+    }
 
     ck_assert_mem_eq(txhash, fromhex("daffcee3c9287c87e2552ca7b7e34565744417ab44b1227e78caaa97d501479d"), hash_len);
 
@@ -266,7 +287,10 @@ START_TEST(test_hycon_sign_tx_with_bip39)
     uint8_t signature[signature_len];
     
     uint8_t recovery = 1;
-    hdnode_hycon_sign_tx(&node, txhash, signature, &recovery);
+    if(hdnode_hycon_sign_tx(&node, txhash, signature, &recovery) == 0)
+    {
+        ck_assert_str_eq("test_hycon_sign_tx_with_bip39", "hdnode_hycon_sign_tx");
+    }
 
     ck_assert_mem_eq(signature, fromhex("2b8ec67834136270b183ec59232a014e600d8429a2c59cb707beec01b8dc01c9606aeb8fc0c61a414b298095e0c2f96487234f8c356ed071493b9328395c2953"), signature_len);
     ck_assert_int_eq(recovery, 0);
@@ -295,7 +319,10 @@ START_TEST(test_hycon_decrypt_private_key)
 
     uint8_t private_key[hash_len];
 
-    hdnode_hycon_decrypt(iv_char, data_char, data_len, password_hash, private_key);
+    if(hdnode_hycon_decrypt(iv_char, data_char, data_len, password_hash, private_key) == 0)
+    {
+        ck_assert_str_eq("test_hycon_decrypt_private_key", "hdnode_hycon_decrypt");
+    }
 
     ck_assert_mem_eq(private_key, fromhex("f35776c86f811d9ab1c66cadc0f503f519bf21898e589c2f26d646e472bfacb2"), hash_len);
 }
@@ -323,7 +350,10 @@ START_TEST(test_hycon_decrypt_private_key_with_password)
 
     uint8_t private_key[hash_len];
 
-    hdnode_hycon_decrypt(iv_char, data_char, data_len, password_hash, private_key);
+    if(hdnode_hycon_decrypt(iv_char, data_char, data_len, password_hash, private_key) == 0) 
+    {
+        ck_assert_str_eq("test_hycon_decrypt_private_key_with_password", "hdnode_hycon_decrypt");
+    }
 
     ck_assert_mem_eq(private_key, fromhex("fe5a90b95ae42ef31e3ed674111a880b432a4556aedfe53a5c0109dfe49b3fc7"), hash_len);
 }
@@ -336,7 +366,10 @@ START_TEST(test_hycon_encrypt_and_decrypt)
     size_t seed_len = 64;
     uint8_t seed[seed_len + 2];
     mnemonic_to_seed("way prefer push tooth bench hover orchard brother crumble nothing wink retire", "", seed, 0);
-    hdnode_from_seed_hycon(seed, seed_len, &node);
+    if(hdnode_from_seed_hycon(seed, seed_len, &node) == 0) 
+    {
+        ck_assert_str_eq("test_hycon_encrypt_and_decrypt", "hdnode_from_seed_hycon");
+    }
 
     size_t hash_len = 32;
     uint8_t password_hash[hash_len];
@@ -348,10 +381,16 @@ START_TEST(test_hycon_encrypt_and_decrypt)
 
     size_t data_len = 80;
     uint8_t data[data_len];
-    hdnode_hycon_encrypt(&node, password_hash, iv, iv_len, data, data_len);
+    if(hdnode_hycon_encrypt(&node, password_hash, iv, iv_len, data, data_len) == 0)
+    {
+        ck_assert_str_eq("test_hycon_encrypt_and_decrypt", "hdnode_hycon_encrypt");
+    }
 
     uint8_t private_key[hash_len];
-    hdnode_hycon_decrypt(iv, data, data_len, password_hash, private_key);
+    if(hdnode_hycon_decrypt(iv, data, data_len, password_hash, private_key) == 0)
+    {
+        ck_assert_str_eq("test_hycon_encrypt_and_decrypt", "hdnode_hycon_decrypt");
+    }
 
     ck_assert_mem_eq(private_key, node.private_key, hash_len);
 }
@@ -364,7 +403,10 @@ START_TEST(test_hycon_encrypt_and_decrypt_with_bip39)
     size_t seed_len = 64;
     uint8_t seed[seed_len + 2];
     mnemonic_to_seed("way prefer push tooth bench hover orchard brother crumble nothing wink retire", "TREZOR", seed, 0);
-    hdnode_from_seed_hycon(seed, seed_len, &node);
+    if(hdnode_from_seed_hycon(seed, seed_len, &node) == 0)
+    {
+        ck_assert_str_eq("test_hycon_encrypt_and_decrypt_with_bip39", "hdnode_from_seed_hycon");
+    }
 
     size_t hash_len = 32;
     uint8_t password_hash[hash_len];
@@ -376,10 +418,16 @@ START_TEST(test_hycon_encrypt_and_decrypt_with_bip39)
 
     size_t data_len = 80;
     uint8_t data[data_len];
-    hdnode_hycon_encrypt(&node, password_hash, iv, iv_len, data, data_len);
+    if(hdnode_hycon_encrypt(&node, password_hash, iv, iv_len, data, data_len) == 0)
+    {
+        ck_assert_str_eq("test_hycon_encrypt_and_decrypt_with_bip39", "hdnode_hycon_encrypt");
+    }
 
     uint8_t private_key[hash_len];
-    hdnode_hycon_decrypt(iv, data, data_len, password_hash, private_key);
+    if(hdnode_hycon_decrypt(iv, data, data_len, password_hash, private_key) == 0) 
+    {
+        ck_assert_str_eq("test_hycon_encrypt_and_decrypt_with_bip39", "hdnode_hycon_decrypt");
+    }
 
     ck_assert_mem_eq(private_key, node.private_key, hash_len);
 }
@@ -392,7 +440,10 @@ START_TEST(test_hycon_encrypt_and_decrypt_with_password)
     size_t seed_len = 64;
     uint8_t seed[seed_len + 2];
     mnemonic_to_seed("way prefer push tooth bench hover orchard brother crumble nothing wink retire", "TREZOR", seed, 0);
-    hdnode_from_seed_hycon(seed, seed_len, &node);
+    if(hdnode_from_seed_hycon(seed, seed_len, &node) == 0)
+    {
+        ck_assert_str_eq("test_hycon_encrypt_and_decrypt_with_password", "hdnode_from_seed_hycon");
+    }
 
     size_t hash_len = 32;
     uint8_t password_hash[hash_len];
@@ -404,10 +455,16 @@ START_TEST(test_hycon_encrypt_and_decrypt_with_password)
 
     size_t data_len = 80;
     uint8_t data[data_len];
-    hdnode_hycon_encrypt(&node, password_hash, iv, iv_len, data, data_len);
+    if(hdnode_hycon_encrypt(&node, password_hash, iv, iv_len, data, data_len) == 0) 
+    {
+        ck_assert_str_eq("test_hycon_encrypt_and_decrypt_with_password", "hdnode_hycon_encrypt");
+    }
 
     uint8_t private_key[hash_len];
-    hdnode_hycon_decrypt(iv, data, data_len, password_hash, private_key);
+    if(hdnode_hycon_decrypt(iv, data, data_len, password_hash, private_key) == 0)
+    {
+        ck_assert_str_eq("test_hycon_encrypt_and_decrypt_with_password", "hdnode_hycon_decrypt");
+    }
 
     ck_assert_mem_eq(private_key, node.private_key, hash_len);
 }

@@ -102,8 +102,8 @@ void hycon_address_checksum(const uint8_t* address_arr, const size_t address_arr
 	memset(all_checksum, 0, all_checksum_len);
 	b58enc(all_checksum, &all_checksum_len, hash, hash_len);
 
-	memset(checksum, 0, checksum_len);
-	memcpy(checksum, all_checksum, checksum_len - 1);
+	memset(checksum, 0, checksum_len+1);
+	memcpy(checksum, all_checksum, checksum_len);
 
 }
 
