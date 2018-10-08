@@ -69,9 +69,9 @@ SRCS  += protob/hyconTx.pb-c.c
 
 OBJS   = $(SRCS:.c=.o)
 
-TESTLIBS = $(shell pkg-config --libs check)
+TESTLIBS = $(shell pkg-config --libs check) -lpthread -lm
 TESTSSLLIBS = $(shell pkg-config --libs openssl)
-PROTOLIBS = -lpthread -lm -L/usr/local/lib -lprotobuf-c
+PROTOLIBS = -L/usr/local/lib -lprotobuf-c
 CRYPTOLIBS = -lcrypto
 
 all: tools tests
