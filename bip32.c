@@ -846,7 +846,8 @@ int hdnode_hycon_hash_password(const char* password, uint8_t* password_hash)
 	size_t password_len = strlen(password);
 	size_t password_hash_len = 32;
 	memset(password_hash, 0, password_hash_len);
-	blake2b(fromHex(password), password_len / 2, password_hash, password_hash_len);
+
+	blake2b((uint8_t*)password, password_len, password_hash, password_hash_len);
 
 	return 1;
 }
