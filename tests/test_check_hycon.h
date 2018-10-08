@@ -321,11 +321,6 @@ START_TEST(test_hycon_decrypt_private_key_with_password)
     uint8_t password_hash[hash_len];
     hdnode_hycon_hash_password("11", password_hash);
 
-    for(size_t i=0; i<hash_len; ++i) {
-    	printf("%d ", password_hash[i]);
-    }
-    printf("\n");
-
     uint8_t private_key[hash_len];
 
     hdnode_hycon_decrypt(iv_char, data_char, data_len, password_hash, private_key);
